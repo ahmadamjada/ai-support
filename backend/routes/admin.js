@@ -5,31 +5,28 @@ const Order = require('../models/order');
 
 // GET /api/orders/stats
 router.get('/orders/stats', async (req, res) => {
-    try {
-      const totalOrders = await Order.countDocuments();
-      const orders = await Order.find();
-      const monthlyOrders = {};
-  
-      orders.forEach(order => {
-        const month = new Date(order.createdAt).toLocaleString('default', { month: 'short' });
-        monthlyOrders[month] = (monthlyOrders[month] || 0) + 1;
-      });
-  
-      const dates = Object.keys(monthlyOrders);
-      const counts = Object.values(monthlyOrders);
-  
-      res.json({
-        totalOrders,
-        dates,
-        counts,
-        monthlyOrders,
-      });
-    } catch (err) {
-      console.error('Error in /orders/stats:', err);  // Add logging here
-      res.status(500).json({ error: 'Server error' });
-    }
-  });
-  
+  try {
+    // Group orders by month and count them
+    const stats = await Order.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    // Convert to { month: count }
+    const monthlyOrders = {};
+    stats.forEach(stat => {
+      monthlyOrders[stat._id] = stat.count;
+    });
+    res.json({ monthlyOrders });
+  } catch (err) {
+    console.error('Error fetching order stats:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // GET /api/orders/product-distribution
 router.get('/orders/product-distribution', async (req, res) => {
