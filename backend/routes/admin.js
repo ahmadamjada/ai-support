@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
+const User = require('../models/user');
 
 // GET /api/orders/stats
 router.get('/orders/stats', async (req, res) => {
@@ -52,6 +53,54 @@ router.get('/orders/recent', async (req, res) => {
     res.json(recentOrders);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get dashboard statistics
+router.get('/dashboard/stats', async (req, res) => {
+  try {
+    // Get total users
+    const totalUsers = await User.countDocuments();
+    
+    // Get total orders
+    const totalOrders = await Order.countDocuments();
+    
+    // Get recent orders
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('user', 'name email');
+
+    // Get orders by status
+    const ordersByStatus = await Order.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.json({
+      stats: {
+        totalUsers,
+        totalOrders,
+        ordersByStatus: ordersByStatus.reduce((acc, curr) => {
+          acc[curr._id] = curr.count;
+          return acc;
+        }, {})
+      },
+      recentOrders: recentOrders.map(order => ({
+        id: order._id,
+        user: order.user,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ message: 'Error fetching dashboard statistics' });
   }
 });
 

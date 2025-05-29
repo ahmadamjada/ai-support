@@ -1,76 +1,66 @@
 // backend/routes/webhook.js
 const express = require('express');
 const router = express.Router();
-const Order = require('../models/order');
+const dialogflow = require('@google-cloud/dialogflow');
+const Chat = require('../models/Chat');
 
+const sessionClient = new dialogflow.SessionsClient({
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+});
 
+const projectId = process.env.DIALOGFLOW_PROJECT_ID;
+const sessionId = 'default-session';
 
 router.post('/', async (req, res) => {
-  const intent = req.body.queryResult.intent.displayName;
-  const parameters = req.body.queryResult.parameters;
+    try {
+        const startTime = Date.now();
+        const { message, userId } = req.body;
 
-  console.log("🤖 Received intent:", intent);
-  console.log("📦 Parameters:", parameters);
-  console.log("🔥 Webhook hit!");
-  console.log(req.body)
-  let responseText = "Sorry, I didn’t understand that.";
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
 
-  // Intent handling
-  switch (intent) {
-    case 'Order Status':
-      responseText = `📦 Your order is currently being processed. Please wait for a confirmation.`;
-      break;
+        const sessionPath = sessionClient.projectAgentSessionPath(projectId, sessionId);
 
-    case 'Booking':
-      responseText = `✅ Your booking request has been received. We’ll get back to you shortly.`;
-      break;
+        const request = {
+            session: sessionPath,
+            queryInput: {
+                text: {
+                    text: message,
+                    languageCode: 'en-US',
+                },
+            },
+        };
 
-      case 'Refund Request':
-      // Assuming parameters.product_name is provided in the request
+        const responses = await sessionClient.detectIntent(request);
+        const result = responses[0].queryResult;
+        const responseTime = Date.now() - startTime;
 
-        const product = parameters.product_name || 'your item';
-        responseText = `💰 Refund process has been initiated for ${product}. Please check your email for updates.`;
-        break;
+        // Save chat interaction
+        const chat = new Chat({
+            query: message,
+            response: result.fulfillmentText,
+            intent: result.intent.displayName,
+            confidence: result.intentDetectionConfidence,
+            responseTime: responseTime / 1000, // Convert to seconds
+            userId: userId || 'anonymous',
+            sessionId
+        });
 
+        console.log('Attempting to save chat interaction...', chat);
+        await chat.save();
+        console.log('Chat interaction saved!');
 
-        case 'User Info Collection':
-      const { person, 'phone-number': phone, email, address, product_name } = parameters;
-
-      const name = Array.isArray(person) && person.length > 0 ? person[0].name : 'User';
-
-      // Save user order to MongoDB
-  try {
-    await Order.create({
-      name,
-      phone,
-      email,
-      address,
-      product: product_name,
-    });
-    console.log('📦 Order saved to DB');
-  } catch (err) {
-    console.error('❌ Error saving order:', err.message);
-  }
-
-
-      responseText = `🎉 Thanks ${name}! We’ve received your details:
-📞 Phone: ${phone}
-📧 Email: ${email}
-🏠 Address: ${address}
-🛍️ Product: ${product_name}
-
-We’ll reach out to you shortly!`;
-      break;
-
-    default:
-      responseText = `😅 I'm not sure how to help with that. Let me check with Gemini...`;
-      // Later we'll call Gemini API here!
-  }
-
-
-  res.json({
-    fulfillmentText: responseText,
-  });
+        res.json({
+            fulfillmentText: result.fulfillmentText,
+            intent: result.intent.displayName,
+            confidence: result.intentDetectionConfidence,
+            responseTime: responseTime
+        });
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;

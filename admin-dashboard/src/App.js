@@ -1,74 +1,85 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import Orders from './components/Orders';
-import Products from './components/Products';
-import Customers from './components/Customers';
+import { ThemeProvider, createTheme } from '@mui/material';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import MainLayout from './components/MainLayout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Users from './pages/Users';
+import Orders from './pages/Orders';
+import Settings from './pages/Settings';
+import './styles/global.css';
+
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#1976d2',
+        },
+        secondary: {
+            main: '#dc004e',
+        },
+    },
+});
+
+const PrivateRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
+    return <MainLayout>{children}</MainLayout>;
+};
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('adminToken');
-
-  return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
-        <Route
-          path="/"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/dashboard"
-          element={
-            isAuthenticated ? (
-              <Layout>
-                <Dashboard />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            isAuthenticated ? (
-              <Layout>
-                <Orders />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/products"
-          element={
-            isAuthenticated ? (
-              <Layout>
-                <Products />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/customers"
-          element={
-            isAuthenticated ? (
-              <Layout>
-                <Customers />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-      </Routes>
-    </Router>
-  );
+    return (
+        <ThemeProvider theme={theme}>
+            <AuthProvider>
+                <Router>
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <PrivateRoute>
+                                    <Dashboard />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/users"
+                            element={
+                                <PrivateRoute>
+                                    <Users />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/orders"
+                            element={
+                                <PrivateRoute>
+                                    <Orders />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/settings"
+                            element={
+                                <PrivateRoute>
+                                    <Settings />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route path="/" element={<Navigate to="/dashboard" />} />
+                    </Routes>
+                </Router>
+            </AuthProvider>
+        </ThemeProvider>
+    );
 }
 
 export default App;

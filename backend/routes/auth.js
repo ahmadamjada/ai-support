@@ -3,6 +3,41 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/admin');
 
+// Middleware to verify JWT token
+const auth = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      throw new Error();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const admin = await Admin.findById(decoded.id);
+    
+    if (!admin) {
+      throw new Error();
+    }
+
+    req.admin = admin;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Please authenticate' });
+  }
+};
+
+// Check auth status
+router.get('/check', auth, async (req, res) => {
+  try {
+    res.json({
+      id: req.admin._id,
+      email: req.admin.email,
+      name: req.admin.name
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Login route
 router.post('/login', async (req, res) => {
   try {
