@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Chat = require('../models/Chat');
+const Chat = require('../models/chat');
 
 // Get chat statistics
 router.get('/stats', async (req, res) => {
