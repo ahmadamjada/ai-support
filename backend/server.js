@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://192.168.0.105:3000'],
+  origin: ['http://localhost:3000', 'http://192.168.0.105:3000', 'https://aisite-92ss8m2wz-ahmadamjadas-projects.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
