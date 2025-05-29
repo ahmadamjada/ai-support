@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const dialogflow = require('@google-cloud/dialogflow');
-const Chat = require('../models/Chat');
+const Chat = require('../models/chat');
 
 const sessionClient = new dialogflow.SessionsClient({
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
