@@ -15,7 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading, error } = useAuth();
+  const { login, loading, error, checkToken } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,6 +24,10 @@ const Login = () => {
     if (success) {
       navigate('/dashboard');
     }
+  };
+
+  const handleCheckToken = () => {
+    checkToken();
   };
 
   return (
@@ -79,6 +83,17 @@ const Login = () => {
               {loading ? <CircularProgress size={24} /> : 'Login'}
             </Button>
           </form>
+
+          {/* Debug button */}
+          <Button
+            fullWidth
+            variant="outlined"
+            size="small"
+            sx={{ mt: 2 }}
+            onClick={handleCheckToken}
+          >
+            Check Token (Debug)
+          </Button>
         </CardContent>
       </Card>
     </Box>

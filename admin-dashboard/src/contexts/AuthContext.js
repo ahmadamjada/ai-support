@@ -4,6 +4,13 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
 const TOKEN_KEY = 'adminToken';
 
+// Debug function to check token
+const checkToken = () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    console.log('Current token:', token);
+    return token;
+};
+
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
@@ -26,6 +33,7 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
         try {
             const token = localStorage.getItem(TOKEN_KEY);
+            console.log('Checking auth status with token:', token); // Debug log
             if (!token) {
                 setLoading(false);
                 return;
@@ -58,6 +66,7 @@ export const AuthProvider = ({ children }) => {
             });
 
             const { token, admin } = response.data;
+            console.log('Login successful, setting token:', token); // Debug log
             localStorage.setItem(TOKEN_KEY, token);
             setUser(admin);
             return true;
@@ -71,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        console.log('Logging out, removing token'); // Debug log
         localStorage.removeItem(TOKEN_KEY);
         setUser(null);
     };
@@ -82,7 +92,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         logout,
-        checkAuthStatus
+        checkAuthStatus,
+        checkToken // Expose the debug function
     };
 
     return (
