@@ -2,8 +2,11 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
 
+// Remove trailing slash if present
+const baseURL = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

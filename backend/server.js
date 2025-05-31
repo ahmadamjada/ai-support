@@ -49,6 +49,11 @@ app.get('/', (req, res) => {
   res.send('🎉 AI Support Assistant Backend is Running!');
 });
 
+// Test API route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working!' });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   const dbState = mongoose.connection.readyState;

@@ -4,6 +4,9 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
 const TOKEN_KEY = 'adminToken';
 
+// Remove trailing slash if present
+const baseURL = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+
 // Debug function to check token
 const checkToken = () => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -33,13 +36,13 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
         try {
             const token = localStorage.getItem(TOKEN_KEY);
-            console.log('Checking auth status with token:', token); // Debug log
+            console.log('Checking auth status with token:', token);
             if (!token) {
                 setLoading(false);
                 return;
             }
 
-            const response = await axios.get(`${API_URL}/api/auth/check`, {
+            const response = await axios.get(`${baseURL}/api/auth/check`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -60,13 +63,13 @@ export const AuthProvider = ({ children }) => {
             setLoading(true);
             setError(null);
             
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
+            const response = await axios.post(`${baseURL}/api/auth/login`, {
                 email,
                 password
             });
 
             const { token, admin } = response.data;
-            console.log('Login successful, setting token:', token); // Debug log
+            console.log('Login successful, setting token:', token);
             localStorage.setItem(TOKEN_KEY, token);
             setUser(admin);
             return true;
