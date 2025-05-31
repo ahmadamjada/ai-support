@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 
 export const authService = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post('/api/auth/login', credentials);
     return response.data;
   },
   logout: () => {

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_URL } from '../config';
+
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
 
 const AuthContext = createContext(null);
 
