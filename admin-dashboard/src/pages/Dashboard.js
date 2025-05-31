@@ -20,7 +20,7 @@ import {
     CheckCircle as ResolvedIcon,
     Pending as PendingIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 import { API_URL } from '../config';
 import ChatStats from '../components/ChatStats';
 
@@ -78,8 +78,8 @@ const Dashboard = () => {
             setLoading(true);
             console.log(`Fetching from ${API_URL}/api/dashboard/stats and ${API_URL}/api/dialogflow/stats`);
             const [dashboardResponse, chatResponse] = await Promise.all([
-                axios.get(`${API_URL}/api/dashboard/stats`),
-                axios.get(`${API_URL}/api/dialogflow/stats`)
+                api.get('/api/dashboard/stats'),
+                api.get('/api/dialogflow/stats')
             ]);
             console.log('Dashboard data received:', dashboardResponse.data);
             console.log('Chat data received:', chatResponse.data);
