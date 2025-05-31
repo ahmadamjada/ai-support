@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-support-render.onrender.com';
+const TOKEN_KEY = 'adminToken';
 
 const AuthContext = createContext(null);
 
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem(TOKEN_KEY);
             if (!token) {
                 setLoading(false);
                 return;
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }) => {
             setError(null);
         } catch (err) {
             console.error('Auth check failed:', err);
-            localStorage.removeItem('token');
+            localStorage.removeItem(TOKEN_KEY);
             setUser(null);
             setError('Session expired. Please login again.');
         } finally {
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }) => {
             });
 
             const { token, admin } = response.data;
-            localStorage.setItem('token', token);
+            localStorage.setItem(TOKEN_KEY, token);
             setUser(admin);
             return true;
         } catch (err) {
@@ -70,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem(TOKEN_KEY);
         setUser(null);
     };
 
